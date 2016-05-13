@@ -18,7 +18,7 @@ function verifyName(name, allNames) {
         throw new TypeError(`name must be a string but ${typeof name} was sent`);
     }
 
-    if (!this.allNames.has(name)) {
+    if (!allNames.has(name)) {
         throw new Error(`an item with the given name ${name} doesn't exist`);
     }
 }
@@ -29,11 +29,11 @@ function buildGraph(name, allItems) {
     const edges = [];
 
     while (stack.length > 0) {
-        const currentName = _.last(stack);
+        const currentName = stack.shift();
         verifyName(currentName, allItems);
         visited.add(currentName);
         const item = allItems.get(currentName);
-        _.forEach(item.dependencies, (dependency) => {
+        _.forEach(item.options.dependencies, (dependency) => {
             if (!visited.has(dependency)) {
                 stack.push(dependency);
             }
@@ -47,16 +47,20 @@ function buildGraph(name, allItems) {
 }
 
 function computeValue(name, allItems, computed, singletones, reuseInstances, thisObj) {
+    verifyName(name, allItems);
+    if (singletones.has(name)) {
+        return singletones.get(name);
+    }
     const itemData = allItems.get(name);
     const args = [];
     _.forEach(itemData.options.dependencies, (dependency) => {
         if (singletones.has(dependency)) {
             args.push(singletones.get(dependency))
         } else {
-            if (reuseInstances) {
+            if (reuseInstances || allItems.get(dependency).options.reuse === true) {
                 args.push(computed.get(dependency));
             } else {
-                args.push(computeValue(dependency));
+                args.push(computeValue(dependency, allItems, computed, singletones, reuseInstances, thisObj));
             }
         }
     });
@@ -78,6 +82,7 @@ class IocContainer {
 
 
     set(name, getter, options = {}) {
+        options = _.clone(options);
         if (!_.isString(name)) {
             throw new TypeError(`name must be a string but ${typeof name} was sent`);
         }
@@ -91,6 +96,9 @@ class IocContainer {
         }
 
         options.dependencies = options.dependencies || getter['@dependencies'] || getParamNames(getter);
+        if (!_.has(options, 'isSingleton')) {
+            options.isSingleton = getter['@isSingleton'];
+        }
 
         this._items.set(name, {
             getter,
@@ -105,7 +113,7 @@ class IocContainer {
         }
         const computed = new Map();
         const graph = buildGraph(name, this._items);
-        const ordered = toposort().array(graph.nodes, graph.edges);
+        const ordered = toposort.array(graph.nodes, graph.edges).reverse();
 
         _.forEach(ordered, (itemName) => {
             computeValue(itemName, this._items, computed, this._singletones, reuseInstances, thisObj);
