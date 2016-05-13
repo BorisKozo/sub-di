@@ -1,0 +1,23 @@
+{
+  "name": "sub-di",
+  "version": "0.0.1",
+  "description": "A tiny library for dependency injection",
+  "main": "main.js",
+  "keywords": [
+    "dependency injection",
+    "DI",
+    "IOC"
+  ],
+  "author": "Boris Kozorovitzky",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "gulp": "^3.9.1",
+    "mocha": "^2.4.5",
+    "sinon": "^1.17.4"
+  },
+  "dependencies": {
+    "lodash": "^4.12.0",
+    "toposort": "^0.2.12"
+  }
+}
