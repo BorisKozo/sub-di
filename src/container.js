@@ -106,6 +106,36 @@ class IocContainer {
         })
     }
 
+    setFunction(getter, options) {
+        if (!_.isFunction(getter)) {
+            throw new TypeError(`getter must be a function but ${typeof getter} was sent`)
+        }
+
+        if (_.isEmpty(getter.name)) {
+            throw new Error(`function name must be set`);
+        }
+
+        this.set(getter.name, getter, options);
+    }
+
+    setNodeModules(modules, errorCallback) {
+        if (_.isString(modules)) {
+            modules = [modules];
+        }
+
+        _.forEach(modules, (moduleName)=> {
+            try {
+                const module = require(moduleName);
+                this._singletones.set(moduleName, module);
+            }
+            catch (err) {
+                if (_.isFunction(errorCallback)) {
+                    errorCallback(err);
+                }
+            }
+        });
+    }
+
     call(name, reuseInstances = false, thisObj = undefined) {
 
         if (this._singletones.has(name)) {
