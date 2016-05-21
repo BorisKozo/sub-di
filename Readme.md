@@ -20,15 +20,15 @@ function bar(){
 }
 
 const subDi = require('sub-di')();
-subDi.setFunction(foo);
-subDi.setFunction(bar);
+subDi.set(foo);
+subDi.set(bar);
 subDi.call('foo'); //prints 1234
 
 ````
 
 #### Use with multiple files and named dependencies
 
-** foo.js **
+**foo.js**
 
 ````
    
@@ -42,7 +42,7 @@ subDi.call('foo'); //prints 1234
    module.exports['@dependencies'] = ['Id Generator']
 ````
 
-** id_generator.js
+**id_generator.js**
 
 ````
    let count = 0;
@@ -55,7 +55,7 @@ subDi.call('foo'); //prints 1234
    }
 ````
 
-** main.js **
+**main.js**
 
 ````
 const subDi = require('sub-di')('myModule'); //named subDi instance

@@ -78,12 +78,6 @@ describe('Container', ()=> {
                 }).to.throw('name must be a string');
             });
 
-            it('should throw if the getter was not a function', ()=> {
-                expect(function () {
-                    container.set('my item', {});
-                }).to.throw('getter must be a function');
-            });
-
             it('should throw if two getters with the same name are registered', ()=> {
                 expect(function () {
                     container.set('my item', ()=> {
@@ -360,7 +354,7 @@ describe('Container', ()=> {
                 function hello() {
                 }
 
-                container.setFunction(hello);
+                container.set(hello);
                 expect(container._items.size).to.be.equal(1);
                 expect(container._items.get('hello')).to.be.ok;
                 expect(container._items.get('hello').getter).to.be.equal(hello);
@@ -374,7 +368,7 @@ describe('Container', ()=> {
                 }
 
                 options.dependencies = ['baz', 'bad'];
-                container.setFunction(hello, options);
+                container.set(hello, options);
                 expect(container._items.size).to.be.equal(1);
                 expect(container._items.get('hello')).to.be.ok;
                 expect(container._items.get('hello').options).to.be.ok;
@@ -384,32 +378,26 @@ describe('Container', ()=> {
 
         describe('Errors', () => {
 
-            it('should throw if the getter was not a function', ()=> {
-                expect(function () {
-                    container.setFunction({});
-                }).to.throw('getter must be a function');
-            });
-
             it('should throw if getter has no name', ()=> {
                 expect(function () {
-                    container.setFunction(()=> {
+                    container.set(()=> {
                     });
-                }).to.throw('function name must be set');
+                }).to.throw('name must be set');
             });
         });
     });
 
-    describe('setNodeModules', ()=> {
+    describe('setModules', ()=> {
         describe('Simple use', ()=> {
             it('should add a node module', ()=> {
-                container.setNodeModules('lodash');
+                container.setModules('lodash');
                 const _ = container.call('lodash');
                 const lodash = require('lodash');
                 expect(_).to.be.equal(lodash);
             });
 
             it('should add several node modules', ()=> {
-                container.setNodeModules(['lodash', 'mocha']);
+                container.setModules(['lodash', 'mocha']);
                 const lodash = container.call('lodash');
                 const mocha = container.call('mocha');
                 expect(lodash).to.be.ok;
@@ -420,18 +408,25 @@ describe('Container', ()=> {
         describe('Errors', () => {
 
             it('should call a callback if there is an error', (done)=> {
-                container.setNodeModules('daasdasdadad', function (err) {
+                container.setModules('daasdasdadad', function (err) {
                     expect(err).to.be.ok;
                     done();
                 });
             });
 
             it('should call a callback if there is an error but add others', ()=> {
-                container.setNodeModules(['daasdasdadad', 'lodash'], function (err) {
+                container.setModules(['daasdasdadad', 'lodash'], function (err) {
                     expect(err).to.be.ok;
                 });
                 const lodash = container.call('lodash');
                 expect(lodash).to.be.ok;
+            });
+
+            it('should call a callback if the same module is registered twice', (done)=> {
+                container.setModules(['lodash', 'lodash'], function (err) {
+                    expect(err.message).to.be.equal('an item with the given name lodash already exists');
+                    done();
+                });
             });
         });
     });

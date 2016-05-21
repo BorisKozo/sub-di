@@ -74,59 +74,97 @@ function computeValue(name, allItems, computed, singletones, reuseInstances, thi
     return value;
 }
 
+const clearName = Symbol('clearName');
+const setInternal = Symbol('setInternal');
+const setFunction = Symbol('setFunction');
+const setSingletonInternal = Symbol('setSingletonInternal');
+
 class IocContainer {
-    constructor() {
-        this._singletones = new Map();
-        this._items = new Map();
+
+    [clearName](name, force) {
+        if (this.has(name) && force !== true) {
+            throw new Error(`an item with the given name ${name} already exists`);
+        } else {
+            this._items.delete(name);
+            this._singletones.delete(name);
+        }
     }
 
-
-    set(name, getter, options = {}) {
-        options = _.clone(options);
-        if (!_.isString(name)) {
-            throw new TypeError(`name must be a string but ${typeof name} was sent`);
-        }
-
-        if (!_.isFunction(getter)) {
-            throw new TypeError(`getter must be a function but ${typeof getter} was sent`)
-        }
-
-        if (this._items.has(name) && options.force !== true) {
-            throw new Error(`an item with the given name ${name} already exists`);
-        }
-
+    [setInternal](name, getter, options = {}) {
         options.dependencies = options.dependencies || getter['@dependencies'] || getParamNames(getter);
         if (!_.has(options, 'isSingleton')) {
             options.isSingleton = getter['@isSingleton'];
         }
 
+        this[clearName](name, options.force);
         this._items.set(name, {
             getter,
             options
         })
     }
 
-    setFunction(getter, options) {
-        if (!_.isFunction(getter)) {
-            throw new TypeError(`getter must be a function but ${typeof getter} was sent`)
+    [setFunction](getter, options = {}) {
+        const name = options.name || getter['@name'] || getter.name;
+        if (_.isEmpty(name)) {
+            throw new Error(`name must be set`);
         }
 
-        if (_.isEmpty(getter.name)) {
-            throw new Error(`function name must be set`);
-        }
-
-        this.set(getter.name, getter, options);
+        this[setInternal](name, getter, options);
     }
 
-    setNodeModules(modules, errorCallback) {
+    [setSingletonInternal](name, value) {
+        this[clearName](name);
+        this._singletones.set(name, value);
+    }
+
+    constructor() {
+        this._singletones = new Map();
+        this._items = new Map();
+    }
+
+    has(name) {
+        return this._items.has(name) || this._singletones.has(name);
+    }
+
+    /**
+     *
+     * Overloads:
+     * set(func, <options>) -> uses name from options or function to register
+     * set(name, object, <options>) -> registers object as singleton
+     * set(name, func, <options>) -> registers function
+     */
+    set(name, getter, options = {}) {
+        if (_.isFunction(name)) {
+            this[setFunction](name, getter);
+            return;
+        }
+
+        options = _.clone(options);
+        if (!_.isString(name)) {
+            throw new TypeError(`name must be a string but ${typeof name} was sent`);
+        }
+
+        if (!_.isFunction(getter)) {
+            if ((_.isObject(getter) || _.isNumber(getter) || _.isBoolean(getter) || _.isString(getter) || options.isConst === true)) {
+                this[setSingletonInternal](name, getter);
+                return;
+            } else {
+                throw new TypeError(`getter must be a function but ${typeof getter} was sent`)
+            }
+        }
+
+        this[setInternal](name, getter, options);
+    }
+
+    setModules(modules, errorCallback) {
         if (_.isString(modules)) {
             modules = [modules];
         }
 
         _.forEach(modules, (moduleName)=> {
             try {
-                const module = require(moduleName);
-                this._singletones.set(moduleName, module);
+                this[clearName](moduleName);
+                this[setSingletonInternal](moduleName, require(moduleName));
             }
             catch (err) {
                 if (_.isFunction(errorCallback)) {

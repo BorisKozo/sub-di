@@ -13,8 +13,8 @@ describe('example',()=>{
        }
 
        const subDi = require('./../main')();
-       subDi.setFunction(foo);
-       subDi.setFunction(bar);
+       subDi.set(foo);
+       subDi.set(bar);
        const result = subDi.call('foo'); //prints 1234
        expect(result).to.be.equal(1234);
    });
