@@ -13,8 +13,9 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "gulp": "^3.9.1",
-    "gulp-coverage": "^0.3.38",
-    "gulp-coveralls": "^0.1.4",
+    "gulp-babel": "^6.1.2",
+    "gulp-babel-istanbul": "^1.2.0",
+    "gulp-inject-modules": "^0.2.0",
     "gulp-mocha": "^2.2.0",
     "mocha": "^2.4.5",
     "sinon": "^1.17.4"

@@ -15,7 +15,7 @@ describe('example',()=>{
        const subDi = require('./../main')();
        subDi.set(foo);
        subDi.set(bar);
-       const result = subDi.call('foo'); //prints 1234
+       const result = subDi.get('foo'); //prints 1234
        expect(result).to.be.equal(1234);
    });
 
@@ -44,7 +44,7 @@ describe('example',()=>{
 
         subDi.set('Id Generator',idGenerator);
 
-        expect(subDi.call('fooObj').id).to.be.equal(0); //0
-        expect(subDi.call('fooObj').id).to.be.equal(0); // still 0 because fooObj is a singleton and will not be created again
+        expect(subDi.get('fooObj').id).to.be.equal(0); //0
+        expect(subDi.get('fooObj').id).to.be.equal(0); // still 0 because fooObj is a singleton and will not be created again
     });
 });

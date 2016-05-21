@@ -81,8 +81,68 @@ When requiring the module via a call to ````require('sub-di')```` you get a func
   Example:
   
   ````
-  const subDi = require('sub-di')('myModuleName');
+  const subDi = require('sub-di')('myModuleName'); //subDi is an IOC container
   ````
   
 #### The IOC container
   
+  The API for the IOC container has two main functions. ````get```` and ````set````. 
+  Use ````set```` to register your function/object/primitive and then use ````get```` to retrieve it.
+  
+  The ````set```` function has two overloads:
+  
+  **Named set**
+  
+  ````func(name, something, options)````
+  
+  The _name_ argument is the name of your dependency item and it can be any string. _something_ is the thing you want
+  to register. You can register either a function, or any object or primitive. If you register something which is **not** a 
+  function, it becomes a singleton and therefore the same instance is returned from all calls to ````get````. In this case you 
+  cannot provide any additional dependencies. For example
+  
+  ````
+    subDi.set('myLuckyNumber',5);
+    subDi.get('myLuckyNumber'); // 5
+  ````
+
+If _something_ is a function then it will be registered as an inversion of control function with dependencies.
+ There are three ways to define dependencies for the function:
+ 
+ 1. Via the options
+ ````
+   subDi.set('myFunc', (a,b) => { }, {
+      dependencies:['A','B']
+   });
+ ````
+ 
+ 2. Via the annotation
+ ````
+    function foo(a,b){}
+    foo['@dependencies'] = ['A','B'];
+    subDi.set('myFunc', foo); 
+  ````
+  
+ 3. The Angular.js way (this works only if you are not using any fancy stuff like default parameters)
+  ````
+      function foo(A,B){}
+      subDi.set('myFunc', foo); // Dependencies ['A','B'] inferred from the function definition
+  ````
+  
+  If you try to set something with a name that already exists, an error will be thrown. To force the set anyway you
+  can use the _force_ parameter in the _options_
+  
+  ````
+      subDi.set('myLuckyNumber',5);
+      subDi.set('myLuckyNumber',10); // This will throw!
+      subDi.set('myLuckyNumber',10,{force:true}); // This is OK
+  ````
+  
+  If you want to set a function as a singleton with the shorthand syntax, you may pass _isConst_ as ````true```` in the options.
+  
+  ````
+        function foo(){};
+        subDi.set('myFunc',foo,{isConst:true});
+        subDi.get('myFunc'); //returns foo itself and not the result of calling foo
+    ````
+    
+    

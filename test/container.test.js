@@ -100,7 +100,7 @@ describe('Container', ()=> {
                 };
                 const funcSpy = sinon.spy(func);
                 container.set('A', func);
-                const result = container.call('A');
+                const result = container.get('A');
                 expect(result).to.be.equal(obj);
                 //expect(funcSpy.calledOnce).to.be.true;
             });
@@ -111,10 +111,10 @@ describe('Container', ()=> {
                     return i;
                 };
                 container.set('A', func);
-                let result = container.call('A');
+                let result = container.get('A');
                 expect(result).to.be.equal(0);
                 i++;
-                result = container.call('A');
+                result = container.get('A');
                 expect(result).to.be.equal(1);
             });
 
@@ -128,10 +128,10 @@ describe('Container', ()=> {
                 };
 
                 container.set('A', func, options);
-                let result = container.call('A');
+                let result = container.get('A');
                 expect(result).to.be.equal(0);
                 i++;
-                result = container.call('A');
+                result = container.get('A');
                 expect(result).to.be.equal(0);
             });
 
@@ -144,10 +144,10 @@ describe('Container', ()=> {
                 func['@isSingleton'] = true;
 
                 container.set('A', func);
-                let result = container.call('A');
+                let result = container.get('A');
                 expect(result).to.be.equal(0);
                 i++;
-                result = container.call('A');
+                result = container.get('A');
                 expect(result).to.be.equal(0);
             });
         });
@@ -162,7 +162,7 @@ describe('Container', ()=> {
                 };
                 container.set('B', funcB);
                 container.set('A', funcA);
-                const result = container.call('B');
+                const result = container.get('B');
                 expect(result).to.be.equal(30);
             });
 
@@ -177,9 +177,9 @@ describe('Container', ()=> {
                 };
                 container.set('B', funcB);
                 container.set('A', funcA);
-                container.call('B');
+                container.get('B');
                 number = 10;
-                const result = container.call('B');
+                const result = container.get('B');
                 expect(result).to.be.equal(15);
             });
 
@@ -195,9 +195,9 @@ describe('Container', ()=> {
 
                 container.set('A', funcA);
                 container.set('B', funcB);
-                container.call('B');
+                container.get('B');
                 number = 10;
-                const result = container.call('B');
+                const result = container.get('B');
                 expect(result).to.be.equal(15);
             });
         });
@@ -247,7 +247,7 @@ describe('Container', ()=> {
                 container.set('D', funcD);
                 container.set('E', funcE);
 
-                const result = container.call('A');
+                const result = container.get('A');
                 expect(result).to.be.equal((d * 2) * (e + d));
             });
 
@@ -263,7 +263,7 @@ describe('Container', ()=> {
                 container.set('D', funcD);
                 container.set('E', funcE);
 
-                const result = container.call('A');
+                const result = container.get('A');
                 expect(result).to.be.equal(1170);
             });
 
@@ -279,7 +279,7 @@ describe('Container', ()=> {
                 container.set('D', funcD, {reuse: true});
                 container.set('E', funcE);
 
-                const result = container.call('A');
+                const result = container.get('A');
                 expect(result).to.be.equal(840);
             });
 
@@ -295,7 +295,7 @@ describe('Container', ()=> {
                 container.set('D', funcD);
                 container.set('E', funcE);
 
-                const result = container.call('A', true);
+                const result = container.get('A', true);
                 expect(result).to.be.equal(840);
             });
 
@@ -311,7 +311,7 @@ describe('Container', ()=> {
                 container.set('D', funcD, {isSingleton: true});
                 container.set('E', funcE);
 
-                const result = container.call('A');
+                const result = container.get('A');
                 expect(result).to.be.equal(840);
             });
         });
@@ -319,7 +319,7 @@ describe('Container', ()=> {
         describe('Errors', () => {
             it('should throw if trying to call non existing name', ()=> {
                 expect(function () {
-                    container.call('B');
+                    container.get('B');
                 }).to.throw('an item with the given name');
             });
 
@@ -328,7 +328,7 @@ describe('Container', ()=> {
 
                 });
                 expect(function () {
-                    container.call('A');
+                    container.get('A');
                 }).to.throw('an item with the given name');
             });
 
@@ -340,7 +340,7 @@ describe('Container', ()=> {
 
                 });
                 expect(function () {
-                    container.call('A');
+                    container.get('A');
                 }).to.throw('Cyclic dependency');
 
             });
@@ -391,15 +391,15 @@ describe('Container', ()=> {
         describe('Simple use', ()=> {
             it('should add a node module', ()=> {
                 container.setModules('lodash');
-                const _ = container.call('lodash');
+                const _ = container.get('lodash');
                 const lodash = require('lodash');
                 expect(_).to.be.equal(lodash);
             });
 
             it('should add several node modules', ()=> {
                 container.setModules(['lodash', 'mocha']);
-                const lodash = container.call('lodash');
-                const mocha = container.call('mocha');
+                const lodash = container.get('lodash');
+                const mocha = container.get('mocha');
                 expect(lodash).to.be.ok;
                 expect(mocha).to.be.ok;
             });
@@ -418,7 +418,7 @@ describe('Container', ()=> {
                 container.setModules(['daasdasdadad', 'lodash'], function (err) {
                     expect(err).to.be.ok;
                 });
-                const lodash = container.call('lodash');
+                const lodash = container.get('lodash');
                 expect(lodash).to.be.ok;
             });
 

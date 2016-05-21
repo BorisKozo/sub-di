@@ -1,7 +1,8 @@
 const gulp = require('gulp');
 const mocha = require('gulp-mocha');
-const coveralls = require('gulp-coveralls');
-const cover = require('gulp-coverage');
+const babel = require('gulp-babel');
+const istanbul = require('gulp-babel-istanbul');
+const injectModules = require('gulp-inject-modules');
 
 gulp.task('test', () => {
     return gulp.src('test/**/*.test.js', {read: false})
@@ -9,25 +10,16 @@ gulp.task('test', () => {
 });
 
 
-gulp.task('coverage', function () {
-    return gulp.src('test/**/*.test.js', {read: false})
-        .pipe(cover.instrument({
-            pattern: ['src/**/*.js']
-        }))
-        .pipe(mocha())
-        .pipe(cover.gather())
-        .pipe(cover.format())
-        .pipe(gulp.dest('reports'));
+gulp.task('coverage', function (cb) {
+    gulp.src('src/**/*.js')
+        .pipe(istanbul())
+        .pipe(istanbul.hookRequire()) // or you could use .pipe(injectModules())
+        .on('finish', function () {
+            gulp.src('test/**/*.test.js')
+                .pipe(babel())
+                .pipe(injectModules())
+                .pipe(mocha())
+                .pipe(istanbul.writeReports())
+                .on('end', cb);
+        });
 });
-
-gulp.task('coveralls', function () {
-    return gulp.src('test/**/*.test.js', {read: false})
-        .pnpmipe(cover.instrument({
-            pattern: ['src/**/*.js']
-        }))
-        .pipe(mocha()) // or .pipe(jasmine()) if using jasmine
-        .pipe(cover.gather())
-        .pipe(cover.format({reporter: 'lcov'}))
-        .pipe(coveralls());
-});
-

@@ -28,8 +28,10 @@ function buildGraph(name, allItems) {
     const stack = [name];
     const edges = [];
 
+
     while (stack.length > 0) {
         const currentName = stack.shift();
+
         verifyName(currentName, allItems);
         visited.add(currentName);
         const item = allItems.get(currentName);
@@ -144,12 +146,12 @@ class IocContainer {
             throw new TypeError(`name must be a string but ${typeof name} was sent`);
         }
 
-        if (!_.isFunction(getter)) {
+        if (!_.isFunction(getter) || options.isConst === true) {
             if ((_.isObject(getter) || _.isNumber(getter) || _.isBoolean(getter) || _.isString(getter) || options.isConst === true)) {
                 this[setSingletonInternal](name, getter);
                 return;
             } else {
-                throw new TypeError(`getter must be a function but ${typeof getter} was sent`)
+                throw new TypeError(`getter must be a function or a primitive but ${typeof getter} (${getter}) was sent`)
             }
         }
 
@@ -174,7 +176,7 @@ class IocContainer {
         });
     }
 
-    call(name, reuseInstances = false, thisObj = undefined) {
+    get(name, reuseInstances = false, thisObj = undefined) {
 
         if (this._singletones.has(name)) {
             return this._singletones.get(name);
