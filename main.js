@@ -25,4 +25,4 @@ if (!symbolExists) {
     global[globalSymbol] = subDi;
 }
 
-module.exports = global[subdivisionSymbol];
+module.exports = global[globalSymbol];
