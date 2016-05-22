@@ -108,101 +108,98 @@ When requiring the module via a call to ````require('sub-di')```` you get a func
 If _something_ is a function then it will be registered as an inversion of control function with dependencies.
  There are three ways to define dependencies for the function:
  
- 1. Via the options
- ````
-   subDi.set('myFunc', (a,b) => { }, {
-      dependencies:['A','B']
-   });
- ````
- 
- 2. Via the annotation
- ````
+1. Via the options
+````
+    subDi.set('myFunc', (a,b) => { }, {
+        dependencies:['A','B']
+    });
+````
+
+2. Via the annotation
+````
     function foo(a,b){}
     foo['@dependencies'] = ['A','B'];
     subDi.set('myFunc', foo); 
-  ````
-  
- 3. The Angular.js way (this works only if you are not using any fancy stuff like default parameters or babel transpiler)
-  ````
-      function foo(A,B){}
-      subDi.set('myFunc', foo); // Dependencies ['A','B'] inferred from the function definition
-  ````
-  
-  If you try to set something with a name that already exists, an error will be thrown. To force the set anyway you
-  can use the _force_ parameter in the _options_
-  
-  ````
-      subDi.set('myLuckyNumber',5);
-      subDi.set('myLuckyNumber',10); // This will throw!
-      subDi.set('myLuckyNumber',10,{force:true}); // This is OK
-  ````
-  
-  If you want to set a function as a singleton with the shorthand syntax, you may pass _isConst_ as ````true```` in the options.
-  
-  ````
-        function foo(){};
-        subDi.set('myFunc',foo,{isConst:true});
-        subDi.get('myFunc'); //returns foo itself and not the result of calling foo
-    ````
+````
+
+3. The Angular.js way (this works only if you are not using any fancy stuff like default parameters or babel transpiler)
+````
+    function foo(A,B){}
+    subDi.set('myFunc', foo); // Dependencies ['A','B'] inferred from the function definition
+````
+
+If you try to set something with a name that already exists, an error will be thrown. To force the set anyway you
+can use the _force_ parameter in the _options_
+
+````
+    subDi.set('myLuckyNumber',5);
+    subDi.set('myLuckyNumber',10); // This will throw!
+    subDi.set('myLuckyNumber',10,{force:true}); // This is OK
+````
+
+If you want to set a function as a singleton with the shorthand syntax, you may pass _isConst_ as ````true```` in the options.
+
+````
+    function foo(){};
+    subDi.set('myFunc',foo,{isConst:true});
+    subDi.get('myFunc'); //returns foo itself and not the result of calling foo
+````
+
+
+It is possible to tell sub-di that the registered function creates a singleton. In this case the function will be invoked
+only once and its value stored internally. Every time the same singleton is requested the same instance is returned.
+
+This can be done by either:
+
+1. Setting _isSingleton_ property of _options_ to ```true```
+````
+    function foo(){
+       return {}; 
+    }
+    subDi.set('myFunc',foo,{isSingleton:true});
+    const obj1 = subDi.get('myFunc');
+    const obj2 = subDi.get('myFunc'); //obj1 === obj2
+````
+
+2. Annotating the function with the _@isSingleton_ annotation
+````
+    function foo(){
+        return {}; 
+    }
+    foo['@isSingleton'] = true;
+    subDi.set('myFunc',foo);
+    const obj1 = subDi.get('myFunc');
+    const obj2 = subDi.get('myFunc'); //obj1 === obj2
+````
     
-    
-  It is possible to tell sub-di that the registered function creates a singleton. In this case the function will be invoked
-  only once and its value stored internally. Every time the same singleton is requested the same instance is returned.
-  
-  This can be done by either
-  
-  1. Setting _isSingleton_ property of _options_ to ````true```
-  
-  ````
-  
-        function foo(){
-             return {}; 
-          };
-          subDi.set('myFunc',foo,{isSingleton:true});
-          const obj1 = subDi.get('myFunc');
-          const obj2 = subDi.get('myFunc'); //obj1 === obj2
-  ````
-  
-  2. Annotating the function with the _@isSingleton_ annotation
-  
-  ````
-      function foo(){
-           return {}; 
-        };
-        foo['@isSingleton'] = true;
-        subDi.set('myFunc',foo);
-        const obj1 = subDi.get('myFunc');
-        const obj2 = subDi.get('myFunc'); //obj1 === obj2
-  ````
-    
-  **Implied set**
+**Implied set**
   
   
-    With this overload you don't need to specify the name but it is inferred from the provided function in the following priority:
-    
-    1. You can specify the _name_ property in the options
-    
-    ````
+With this overload you don't need to specify the name but it is inferred from the provided function in the following priority:
+
+1. You can specify the _name_ property in the options
+
+````
     function foo(){}
     subDi.set(foo,{name:'myFunc'});
     subDi.get('myFunc'); //calls foo
-    ````
-    
-    2. You can annotate the function with the _@name_ annotation
-    
-    ````
-        function foo(){}
-        foo['@name'] = 'myFunc';
-        subDi.set(foo);
-        subDi.get('myFunc'); //calls foo
-    ````
-    
-    3. You can let subDi infer the name from the _name_ property of the function
-    
-    ````
-            function foo(){}
-            subDi.set(foo);
-            subDi.get('foo'); //calls foo
-    ````
-    
+````
+
+2. You can annotate the function with the _@name_ annotation
+
+````
+    function foo(){}
+    foo['@name'] = 'myFunc';
+    subDi.set(foo);
+    subDi.get('myFunc'); //calls foo
+````
+
+3. You can let subDi infer the name from the _name_ property of the function
+
+````
+    function foo(){}
+    subDi.set(foo);
+    subDi.get('foo'); //calls foo
+````
+   
     
