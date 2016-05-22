@@ -109,24 +109,22 @@ If _something_ is a function then it will be registered as an inversion of contr
  There are three ways to define dependencies for the function:
  
 1. Via the options
-````
-    subDi.set('myFunc', (a,b) => { }, {
-        dependencies:['A','B']
-    });
-````
-
+    ````
+        subDi.set('myFunc', (a,b) => { }, {
+            dependencies:['A','B']
+        });
+    ````
 2. Via the annotation
-````
-    function foo(a,b){}
-    foo['@dependencies'] = ['A','B'];
-    subDi.set('myFunc', foo); 
-````
-
+    ````
+        function foo(a,b){}
+        foo['@dependencies'] = ['A','B'];
+        subDi.set('myFunc', foo); 
+    ````
 3. The Angular.js way (this works only if you are not using any fancy stuff like default parameters or babel transpiler)
-````
-    function foo(A,B){}
-    subDi.set('myFunc', foo); // Dependencies ['A','B'] inferred from the function definition
-````
+    ````
+        function foo(A,B){}
+        subDi.set('myFunc', foo); // Dependencies ['A','B'] inferred from the function definition
+    ````
 
 If you try to set something with a name that already exists, an error will be thrown. To force the set anyway you
 can use the _force_ parameter in the _options_
