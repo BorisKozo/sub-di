@@ -88,12 +88,44 @@ describe('Container', ()=> {
             });
         });
 
-        describe('Set an object', () =>{
-          it('should set an object or a primitive',() => {
-              const obj = {};
-              container.set('Obj',obj);
-              expect(container.get('Obj')).to.be.equal(obj);
-          });
+        describe('Set an object', () => {
+            it('should set an object', () => {
+                const obj = {};
+                container.set('Obj', obj);
+                expect(container.get('Obj')).to.be.equal(obj);
+            });
+
+            it('should set a number', () => {
+                const item = 124;
+                container.set('item', item);
+                expect(container.get('item')).to.be.equal(124);
+            });
+
+            it('should set a string', () => {
+                const item = '124';
+                container.set('item', item);
+                expect(container.get('item')).to.be.equal('124');
+            });
+
+            it('should set a boolean', () => {
+                const item = true;
+                container.set('item', item);
+                expect(container.get('item')).to.be.equal(true);
+            });
+
+            it('should set a function', () => {
+                const item = function () {
+
+                };
+                container.set('item', item, {isConst: true});
+                expect(container.get('item')).to.be.equal(item);
+            });
+
+            it('should throw if value is not valid type', () => {
+                expect(function () {
+                    container.set('item', undefined);
+                }).to.throw('getter must be');
+            });
         });
 
         describe('setFunction', ()=> {
@@ -123,19 +155,19 @@ describe('Container', ()=> {
                     expect(container._items.get('hello').options.dependencies).to.be.eql(['baz', 'bad']);
                 });
 
-                it('should add a getter with the name option',()=>{
+                it('should add a getter with the name option', ()=> {
                     function hello() {
                     }
 
-                    container.set(hello,{
-                        name:'bye'
+                    container.set(hello, {
+                        name: 'bye'
                     });
                     expect(container._items.size).to.be.equal(1);
                     expect(container._items.get('hello')).not.to.be.ok;
                     expect(container._items.get('bye').getter).to.be.equal(hello);
                 });
 
-                it('should add a getter with the @name annotation',()=>{
+                it('should add a getter with the @name annotation', ()=> {
                     function hello() {
                     }
 
@@ -148,7 +180,6 @@ describe('Container', ()=> {
                 });
 
             });
-
 
 
             describe('Errors', () => {
@@ -276,7 +307,7 @@ describe('Container', ()=> {
             });
         });
 
-        describe.skip('Multiple dependencies', () => {
+        describe('Multiple dependencies for coverage because of Babel :(', () => {
             let funcA;
             let funcB;
             let funcC;
@@ -297,121 +328,7 @@ describe('Container', ()=> {
                 funcA = (B, C) => {
                     return B * C;
                 };
-
-                funcB = (D) => {
-                    return D * 2;
-                };
-
-                funcC = (E, D) => {
-                    return E + D;
-                };
-
-                funcD = function () {
-                    return d;
-                };
-
-                funcE = function () {
-                    return e;
-                };
-            });
-            it('should calculate a value', ()=> {
-                container.set('A', funcA);
-                container.set('B', funcB);
-                container.set('C', funcC);
-                container.set('D', funcD);
-                container.set('E', funcE);
-
-                const result = container.get('A');
-                expect(result).to.be.equal((d * 2) * (e + d));
-            });
-
-            it('should calculate value with progressive D', () => {
-                funcD = function () {
-                    d += 1;
-                    return d;
-                };
-
-                container.set('A', funcA);
-                container.set('B', funcB);
-                container.set('C', funcC);
-                container.set('D', funcD);
-                container.set('E', funcE);
-
-                const result = container.get('A');
-                expect(result).to.be.equal(1170);
-            });
-
-            it('should calculate value with static D', () => {
-                funcD = function () {
-                    d += 1;
-                    return d;
-                };
-
-                container.set('A', funcA);
-                container.set('B', funcB);
-                container.set('C', funcC);
-                container.set('D', funcD, {reuse: true});
-                container.set('E', funcE);
-
-                const result = container.get('A');
-                expect(result).to.be.equal(840);
-            });
-
-            it('should calculate value with static D (alternative)', () => {
-                funcD = function () {
-                    d += 1;
-                    return d;
-                };
-
-                container.set('A', funcA);
-                container.set('B', funcB);
-                container.set('C', funcC);
-                container.set('D', funcD);
-                container.set('E', funcE);
-
-                const result = container.get('A', true);
-                expect(result).to.be.equal(840);
-            });
-
-            it('should calculate value with singleton D', () => {
-                funcD = function () {
-                    d += 1;
-                    return d;
-                };
-
-                container.set('A', funcA);
-                container.set('B', funcB);
-                container.set('C', funcC);
-                container.set('D', funcD, {isSingleton: true});
-                container.set('E', funcE);
-
-                const result = container.get('A');
-                expect(result).to.be.equal(840);
-            });
-        });
-
-        describe.skip('Multiple dependencies for coverage because of Babel :(', () => {
-            let funcA;
-            let funcB;
-            let funcC;
-            let funcD;
-            let funcE;
-            let d;
-            let e;
-
-            beforeEach(()=> {
-                // A needs B,C
-                // B needs D
-                // C needs D and E
-                // D needs nothing
-                // E needs nothing
-
-                d = 11;
-                e = 23;
-                funcA = (B, C) => {
-                    return B * C;
-                };
-                funcA['@dependencies'] = ['B','C'];
+                funcA['@dependencies'] = ['B', 'C'];
 
                 funcB = (D) => {
                     return D * 2;
@@ -421,8 +338,8 @@ describe('Container', ()=> {
                 funcC = (E, D) => {
                     return E + D;
                 };
-                funcC['@dependencies'] = ['E','D'];
-                
+                funcC['@dependencies'] = ['E', 'D'];
+
                 funcD = function () {
                     return d;
                 };
@@ -538,7 +455,6 @@ describe('Container', ()=> {
         });
 
     });
-
 
 
     describe('setModules', ()=> {

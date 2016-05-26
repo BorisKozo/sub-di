@@ -11,11 +11,11 @@ gulp.task('test', () => {
 
 
 gulp.task('coverage', function (cb) {
-    gulp.src('src/**/*.js')
+    gulp.src(['src/**/*.js'])
         .pipe(istanbul())
         .pipe(istanbul.hookRequire()) // or you could use .pipe(injectModules())
         .on('finish', function () {
-            gulp.src('test/**/*.test.js')
+            gulp.src(['test/**/*.test.js', '!test/dont_work_with_babel.test.js'])
                 .pipe(babel())
                 .pipe(injectModules())
                 .pipe(mocha())
