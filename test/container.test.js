@@ -87,9 +87,83 @@ describe('Container', ()=> {
                 }).to.throw('an item with the given name');
             });
         });
+
+        describe('Set an object', () =>{
+          it('should set an object or a primitive',() => {
+              const obj = {};
+              container.set('Obj',obj);
+              expect(container.get('Obj')).to.be.equal(obj);
+          });
+        });
+
+        describe('setFunction', ()=> {
+            describe('Simple use', ()=> {
+                it('should add a valid getter', ()=> {
+                    function hello() {
+                    }
+
+                    container.set(hello);
+                    expect(container._items.size).to.be.equal(1);
+                    expect(container._items.get('hello')).to.be.ok;
+                    expect(container._items.get('hello').getter).to.be.equal(hello);
+                });
+
+                it('should add a valid getter with external dependencies', ()=> {
+                    const options = {};
+
+                    function hello(foo, bar) {
+                        foo.bar = bar;
+                    }
+
+                    options.dependencies = ['baz', 'bad'];
+                    container.set(hello, options);
+                    expect(container._items.size).to.be.equal(1);
+                    expect(container._items.get('hello')).to.be.ok;
+                    expect(container._items.get('hello').options).to.be.ok;
+                    expect(container._items.get('hello').options.dependencies).to.be.eql(['baz', 'bad']);
+                });
+
+                it('should add a getter with the name option',()=>{
+                    function hello() {
+                    }
+
+                    container.set(hello,{
+                        name:'bye'
+                    });
+                    expect(container._items.size).to.be.equal(1);
+                    expect(container._items.get('hello')).not.to.be.ok;
+                    expect(container._items.get('bye').getter).to.be.equal(hello);
+                });
+
+                it('should add a getter with the @name annotation',()=>{
+                    function hello() {
+                    }
+
+                    hello['@name'] = 'bye';
+                    container.set(hello);
+
+                    expect(container._items.size).to.be.equal(1);
+                    expect(container._items.get('hello')).not.to.be.ok;
+                    expect(container._items.get('bye').getter).to.be.equal(hello);
+                });
+
+            });
+
+
+
+            describe('Errors', () => {
+
+                it('should throw if getter has no name', ()=> {
+                    expect(function () {
+                        container.set(()=> {
+                        });
+                    }).to.throw('name must be set');
+                });
+            });
+        });
     });
 
-    describe('call', () => {
+    describe('get', () => {
         describe('No dependency', ()=> {
             it('should call a simple getter', () => {
                 const obj = {
@@ -202,7 +276,7 @@ describe('Container', ()=> {
             });
         });
 
-        describe('Multiple dependencies', () => {
+        describe.skip('Multiple dependencies', () => {
             let funcA;
             let funcB;
             let funcC;
@@ -232,6 +306,123 @@ describe('Container', ()=> {
                     return E + D;
                 };
 
+                funcD = function () {
+                    return d;
+                };
+
+                funcE = function () {
+                    return e;
+                };
+            });
+            it('should calculate a value', ()=> {
+                container.set('A', funcA);
+                container.set('B', funcB);
+                container.set('C', funcC);
+                container.set('D', funcD);
+                container.set('E', funcE);
+
+                const result = container.get('A');
+                expect(result).to.be.equal((d * 2) * (e + d));
+            });
+
+            it('should calculate value with progressive D', () => {
+                funcD = function () {
+                    d += 1;
+                    return d;
+                };
+
+                container.set('A', funcA);
+                container.set('B', funcB);
+                container.set('C', funcC);
+                container.set('D', funcD);
+                container.set('E', funcE);
+
+                const result = container.get('A');
+                expect(result).to.be.equal(1170);
+            });
+
+            it('should calculate value with static D', () => {
+                funcD = function () {
+                    d += 1;
+                    return d;
+                };
+
+                container.set('A', funcA);
+                container.set('B', funcB);
+                container.set('C', funcC);
+                container.set('D', funcD, {reuse: true});
+                container.set('E', funcE);
+
+                const result = container.get('A');
+                expect(result).to.be.equal(840);
+            });
+
+            it('should calculate value with static D (alternative)', () => {
+                funcD = function () {
+                    d += 1;
+                    return d;
+                };
+
+                container.set('A', funcA);
+                container.set('B', funcB);
+                container.set('C', funcC);
+                container.set('D', funcD);
+                container.set('E', funcE);
+
+                const result = container.get('A', true);
+                expect(result).to.be.equal(840);
+            });
+
+            it('should calculate value with singleton D', () => {
+                funcD = function () {
+                    d += 1;
+                    return d;
+                };
+
+                container.set('A', funcA);
+                container.set('B', funcB);
+                container.set('C', funcC);
+                container.set('D', funcD, {isSingleton: true});
+                container.set('E', funcE);
+
+                const result = container.get('A');
+                expect(result).to.be.equal(840);
+            });
+        });
+
+        describe.skip('Multiple dependencies for coverage because of Babel :(', () => {
+            let funcA;
+            let funcB;
+            let funcC;
+            let funcD;
+            let funcE;
+            let d;
+            let e;
+
+            beforeEach(()=> {
+                // A needs B,C
+                // B needs D
+                // C needs D and E
+                // D needs nothing
+                // E needs nothing
+
+                d = 11;
+                e = 23;
+                funcA = (B, C) => {
+                    return B * C;
+                };
+                funcA['@dependencies'] = ['B','C'];
+
+                funcB = (D) => {
+                    return D * 2;
+                };
+                funcB['@dependencies'] = ['D'];
+
+                funcC = (E, D) => {
+                    return E + D;
+                };
+                funcC['@dependencies'] = ['E','D'];
+                
                 funcD = function () {
                     return d;
                 };
@@ -348,44 +539,7 @@ describe('Container', ()=> {
 
     });
 
-    describe('setFunction', ()=> {
-        describe('Simple use', ()=> {
-            it('should add a valid getter', ()=> {
-                function hello() {
-                }
 
-                container.set(hello);
-                expect(container._items.size).to.be.equal(1);
-                expect(container._items.get('hello')).to.be.ok;
-                expect(container._items.get('hello').getter).to.be.equal(hello);
-            });
-
-            it('should add a valid getter with external dependencies', ()=> {
-                const options = {};
-
-                function hello(foo, bar) {
-                    foo.bar = bar;
-                }
-
-                options.dependencies = ['baz', 'bad'];
-                container.set(hello, options);
-                expect(container._items.size).to.be.equal(1);
-                expect(container._items.get('hello')).to.be.ok;
-                expect(container._items.get('hello').options).to.be.ok;
-                expect(container._items.get('hello').options.dependencies).to.be.eql(['baz', 'bad']);
-            });
-        });
-
-        describe('Errors', () => {
-
-            it('should throw if getter has no name', ()=> {
-                expect(function () {
-                    container.set(()=> {
-                    });
-                }).to.throw('name must be set');
-            });
-        });
-    });
 
     describe('setModules', ()=> {
         describe('Simple use', ()=> {
