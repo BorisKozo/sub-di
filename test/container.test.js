@@ -425,6 +425,12 @@ describe('Container', ()=> {
         });
 
         describe('Errors', () => {
+            it('should throw if given an invalid name', () =>{
+                expect(function () {
+                    container.get();
+                }).to.throw('name must be a string but');
+            });
+
             it('should throw if trying to call non existing name', ()=> {
                 expect(function () {
                     container.get('B');
@@ -476,6 +482,14 @@ describe('Container', ()=> {
         });
 
         describe('Errors', () => {
+
+            it('should not call a callback if there is an error and no callback given', ()=> {
+                container.setModules('daasdasdadad');
+
+                expect(function () {
+                    container.get('daasdasdadad')
+                }).to.throw('an item with the given name');
+            });
 
             it('should call a callback if there is an error', (done)=> {
                 container.setModules('daasdasdadad', function (err) {
