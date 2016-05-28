@@ -1,6 +1,8 @@
 sub-di - A tiny library for dependency injection and inversion of control in Node.js
 ==========================================
 
+[![Build Status](https://travis-ci.org/BorisKozo/sub-di.svg?branch=master)](https://travis-ci.org/BorisKozo/sub-di)
+
 #### Installation
 
 ````npm install sub-di --save````
